@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,51 +11,64 @@ public static class AnalizadorProcessor
     /// </summary>
     public static void ProcessAnalysis(Dictionary<int, string> dictionary, List<Linea> list, string outputFile)
     {
-        // Diccionario auxiliar para búsquedas rápidas por Numero
-        var lineasPorNumero = list.GroupBy(x => x.Numero)
-                                  .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.Numero).First());
+        // Diccionario auxiliar para búsquedas rápidas por dirección
+        var instruccionesPorDireccion = list.GroupBy(x => x.Numero)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.Numero).First());
 
-        var source3 = new Dictionary<string, string>();
-        var agregados = new HashSet<string>();
-        foreach (var item in dictionary)
+        var outputBuffer = new List<string>(300);
+        var direccionesAgregadas = new HashSet<string>();
+
+        using (var writer = new StreamWriter(outputFile, append: true))
         {
-            string clave;
-            string valor;
-            if (lineasPorNumero.TryGetValue(item.Key, out var lineaIgual))
+            foreach (var diferencia in dictionary)
             {
-                clave = Program.IntAHexa(item.Key);
-                valor = lineaIgual.Contenido;
+                string direccionHex;
+                string instruccion;
+                if (instruccionesPorDireccion.TryGetValue(diferencia.Key, out var lineaIgual))
+                {
+                    direccionHex = Program.IntAHexa(diferencia.Key);
+                    instruccion = lineaIgual.Contenido;
+                }
+                else
+                {
+                    var menores = list.Where(x => x.Numero < diferencia.Key)
+                        .OrderByDescending(x => x.Numero)
+                        .ThenByDescending(x => x.Contenido);
+                    var linea = menores.FirstOrDefault();
+                    if (linea == null)
+                        continue;
+                    direccionHex = Program.IntAHexa(linea.Numero);
+                    instruccion = linea.Contenido;
+                }
+                if (!direccionesAgregadas.Contains(direccionHex))
+                {
+                    outputBuffer.Add(direccionHex + "\t" + instruccion);
+                    direccionesAgregadas.Add(direccionHex);
+                }
+                // Escribir en bloques de 300 para eficiencia
+                if (outputBuffer.Count == 300)
+                {
+                    for (int i = 0; i < outputBuffer.Count; i++)
+                    {
+                        if (i == outputBuffer.Count - 1 && !dictionary.Keys.Last().Equals(diferencia.Key) && !outputBuffer.Any())
+                            writer.Write(outputBuffer[i]);
+                        else
+                            writer.WriteLine(outputBuffer[i]);
+                    }
+                    outputBuffer.Clear();
+                }
             }
-            else
+            // Escribir el resto si queda algo pendiente
+            if (outputBuffer.Any())
             {
-                var menores = list.Where(x => x.Numero < item.Key)
-                    .OrderByDescending(x => x.Numero)
-                    .ThenByDescending(x => x.Contenido);
-                var linea = menores.FirstOrDefault();
-                if (linea == null)
-                    continue;
-                clave = Program.IntAHexa(linea.Numero);
-                valor = linea.Contenido;
+                for (int i = 0; i < outputBuffer.Count; i++)
+                {
+                    if (i == outputBuffer.Count - 1)
+                        writer.Write(outputBuffer[i]);
+                    else
+                        writer.WriteLine(outputBuffer[i]);
+                }
             }
-            if (!agregados.Contains(clave))
-            {
-                source3.Add(clave, valor);
-                agregados.Add(clave);
-            }
-            // Escribir en bloques de 300 para eficiencia
-            if (source3.Count == 300)
-            {
-                File.AppendAllText(outputFile,
-                    string.Join(Environment.NewLine,
-                        source3.Select(x => x.Key + "\t" + x.Value)));
-                source3.Clear();
-            }
-        }
-        // Escribir el resto si queda algo pendiente
-        if (source3.Any())
-        {
-            File.AppendAllText(outputFile,
-                string.Join(Environment.NewLine, source3.Select(x => x.Key + "\t" + x.Value)));
         }
     }
 }

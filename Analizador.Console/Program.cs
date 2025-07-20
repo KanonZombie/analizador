@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace Analizador.Console;
 
@@ -37,46 +35,22 @@ public class Program
             File.Delete(outputFile);
         }
 
-        var dictionary = ParseDiffFile(diffFile);
-        var list = ParseListFile(listFile);
+        var dictionary = FileParser.StreamDiffFile(diffFile).ToDictionary(kv => kv.Key, kv => kv.Value);
+        var list = FileParser.StreamListFile(listFile).ToList();
         AnalizadorProcessor.ProcessAnalysis(dictionary, list, outputFile);
     }
 
-    public static Dictionary<int, string> ParseDiffFile(string diffFile)
-    /// <summary>
-    /// Parsea el archivo diff y devuelve un diccionario con clave int y valor string.
-    /// </summary>
-    {
-        var lines = File.ReadAllLines(diffFile);
-        return lines
-            .Select(x => Regex.Match(x, "([A-F0-9]{8}): ([A-F0-9]{2} [A-F0-9]{2})"))
-            .Where(x => x.Success && !string.IsNullOrEmpty(x.Groups[1].Value))
-            .ToDictionary(
-                t => HexaStringAInt(t.Groups[1].Value),
-                t => t.Groups[2].Value
-            );
-    }
-
-    public static List<Linea> ParseListFile(string listFile)
-    /// <summary>
-    /// Parsea el archivo list y devuelve una lista de objetos Linea.
-    /// </summary>
-    {
-        var lines = File.ReadAllLines(listFile);
-        return lines
-            .Select(x => Regex.Match(x, "([A-F0-9]{8}) [0-9A-F ]+?\t(.+)"))
-            .Where(x => x.Success && !string.IsNullOrEmpty(x.Groups[1].Value))
-            .Select(t => new Linea
-            {
-                Numero = HexaStringAInt(t.Groups[1].Value),
-                Contenido = t.Groups[2].Value
-            })
-            .ToList();
-    }
+    // ...el resto del código permanece igual...
 
     // ...el resto del código permanece igual...
 
     public static string IntAHexa(int numero) => numero.ToString("X").PadLeft(8, '0');
 
-    public static int HexaStringAInt(string hexa) => int.Parse(hexa, NumberStyles.HexNumber);
+    public static int HexaStringAInt(string hexa)
+    {
+        if (int.TryParse(hexa, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int result))
+            return result;
+        System.Console.WriteLine($"Error: No se pudo convertir la dirección hexadecimal '{hexa}'.");
+        return -1;
+    }
 }

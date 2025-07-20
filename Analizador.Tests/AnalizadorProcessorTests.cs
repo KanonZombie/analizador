@@ -65,9 +65,25 @@ public class AnalizadorProcessorTests
         var tempFile = Path.GetTempFileName();
         AnalizadorProcessor.ProcessAnalysis(dict, list, tempFile);
         var output = File.ReadAllText(tempFile);
-        // Debe haber 304 líneas únicas (sin duplicados)
-        var uniqueLines = output.Split('\n').Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count();
-        Assert.Equal(304, uniqueLines);
+        // Debe haber 305 líneas (una por cada diferencia)
+        var lines = output.Split('\n').Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Count();
+        Assert.Equal(305, lines);
+        File.Delete(tempFile);
+    }
+
+    [Fact]
+    public void ProcessAnalysis_NoTrailingEmptyLine()
+    {
+        var dict = new Dictionary<int, string> { { 10, "01 02" }, { 11, "03 04" } };
+        var list = new List<Linea> {
+            new Linea { Numero = 10, Contenido = "TextoA" },
+            new Linea { Numero = 11, Contenido = "TextoB" }
+        };
+        var tempFile = Path.GetTempFileName();
+        AnalizadorProcessor.ProcessAnalysis(dict, list, tempFile);
+        var output = File.ReadAllText(tempFile);
+        var lines = output.Split('\n');
+        Assert.False(string.IsNullOrWhiteSpace(lines.Last()), "El archivo de salida tiene una línea vacía al final.");
         File.Delete(tempFile);
     }
 }
