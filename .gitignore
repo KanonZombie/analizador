@@ -1,0 +1,84 @@
+# Visual Studio
+.vs/
+# Build results
+[Bb]in/
+[Oo]bj/
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# Mono Auto Generated Files
+mono_crash.*
+# Windows image file caches
+Thumbs.db
+# Windows Installer files
+*.msi
+*.msm
+*.msp
+# Windows shortcuts
+*.lnk
+# NuGet Packages
+*.nupkg
+# Build Results
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+# Others
+*.vspscc
+*.vssscc
+*.dbmdl
+*.bak
+*.sql
+*.csv
+*.tmp
+*.swp
+*.swo
+# Rider
+.idea/
+*.sln.iml
+# JetBrains
+*.DotSettings.user
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+# DotCover
+*.dotCover
+# Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+# NCrunch
+*.ncrunch*
+_NCrunch_*
+# Web
+node_modules/
+# Others
+*.orig
+*.rej
+*.sln.ide
+# Local history
+.localhistory/
+# OS generated files
+.DS_Store
+*.AppleDouble
+.LSOverride
+# Thumbnails
+._*
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
